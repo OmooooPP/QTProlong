@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,6 @@
         --white: #ffffff;
       }
       
-      /* บังคับใช้ฟอนต์ Sarabun กับทุกส่วนของหน้าเว็บ */
       * {
         font-family: 'Sarabun', sans-serif;
         box-sizing: border-box;
@@ -32,7 +31,7 @@
       }
       
       .container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         background: var(--white);
         padding: 40px;
@@ -55,7 +54,8 @@
       h2 {
         color: var(--dark-blue);
         margin: 0 0 10px 0;
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 28px;
       }
       
       .subtitle {
@@ -72,12 +72,12 @@
       }
       
       input[type="text"] { 
-        padding: 12px 16px; 
+        padding: 14px 20px; 
         width: 100%;
-        max-width: 400px; 
+        max-width: 450px; 
         font-size: 16px; 
         border: 2px solid var(--bg-light);
-        border-radius: 6px;
+        border-radius: 8px;
         outline: none;
         transition: border-color 0.3s;
         color: var(--dark-blue);
@@ -85,28 +85,35 @@
       
       input[type="text"]:focus {
         border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(47, 63, 82, 0.1);
       }
       
       button { 
-        padding: 12px 24px; 
+        padding: 14px 28px; 
         font-size: 16px; 
         font-weight: 600;
         cursor: pointer; 
         background-color: var(--primary-blue);
         color: var(--white);
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         transition: background-color 0.3s;
       }
       
       button:hover {
         background-color: var(--dark-blue);
       }
+
+      button:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+      }
       
       .table-wrapper {
         overflow-x: auto;
         border-radius: 8px;
         border: 1px solid var(--bg-light);
+        margin-top: 20px;
       }
 
       table { 
@@ -118,9 +125,10 @@
       
       th, td { 
         border-bottom: 1px solid var(--bg-light); 
-        padding: 14px 12px; 
+        padding: 16px 14px; 
         text-align: left; 
         vertical-align: top;
+        word-wrap: break-word;
       }
       
       th { 
@@ -130,8 +138,8 @@
         white-space: nowrap;
       }
       
-      tr:hover {
-        background-color: #f4f7f9;
+      tr:hover td {
+        background-color: #f8fafc;
       }
       
       a {
@@ -150,8 +158,24 @@
         color: var(--primary-blue); 
         font-weight: 600;
         text-align: center;
-        margin: 20px 0;
+        margin: 30px 0;
         font-size: 16px;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(47, 63, 82, 0.2);
+        border-radius: 50%;
+        border-top-color: var(--primary-blue);
+        animation: spin 1s ease-in-out infinite;
+        vertical-align: middle;
+        margin-right: 10px;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
       
       .error { 
@@ -159,14 +183,15 @@
         text-align: center;
         padding: 20px;
         background-color: #ffebee;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 16px;
+        margin-top: 20px;
       }
       
       .no-data {
         text-align: center;
-        padding: 30px;
-        color: #666;
+        padding: 40px;
+        color: #64748b;
         font-style: italic;
         font-size: 16px;
       }
@@ -182,16 +207,18 @@
       </div>
       
       <div class="search-container">
-        <input type="text" id="searchInput" placeholder="พิมพ์ชื่อยาที่ต้องการค้นหา..." onkeypress="handleKeyPress(event)">
+        <input type="text" id="searchInput" placeholder="พิมพ์ชื่อยาที่ต้องการค้นหา เช่น amiodarone..." onkeypress="handleKeyPress(event)">
         <button id="searchBtn" onclick="performSearch()">ค้นหา</button>
       </div>
       
-      <div id="loadingMsg" class="loading">กำลังค้นหาข้อมูล...</div>
+      <div id="loadingMsg" class="loading">
+        <div class="spinner"></div> กำลังดึงข้อมูลจากฐานข้อมูล...
+      </div>
       <div id="resultsContainer"></div>
     </div>
 
     <script>
-      // นำ Web App URL ของคุณมากำหนดไว้ที่นี่
+      // ⚠️ Web App URL ของคุณ
       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0t-BGrrghMaUkJQGr2YujypJ5Q7rCps7ypAwj7CuQ5xq2PoesBz9vBa3FLGqpzcEC/exec';
 
       function handleKeyPress(event) {
@@ -201,30 +228,32 @@
       }
 
       async function performSearch() {
-        var searchTerm = document.getElementById('searchInput').value;
-        if (!searchTerm.trim()) {
+        var searchTerm = document.getElementById('searchInput').value.trim();
+        if (!searchTerm) {
           alert('กรุณาพิมพ์ชื่อยาที่ต้องการค้นหา');
           return;
         }
 
-        document.getElementById('loadingMsg').style.display = 'block';
-        document.getElementById('resultsContainer').innerHTML = '';
+        const loadingMsg = document.getElementById('loadingMsg');
+        const resultsContainer = document.getElementById('resultsContainer');
         const searchBtn = document.getElementById('searchBtn');
+
+        loadingMsg.style.display = 'block';
+        resultsContainer.innerHTML = '';
         searchBtn.disabled = true;
         
         try {
-          // ดึงข้อมูลผ่าน API โดยส่งคำค้นหาไปกับ URL
+          // ดึงข้อมูลผ่าน API ด้วยคำสั่ง fetch
           const response = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(searchTerm)}`);
           const json = await response.json();
           
           searchBtn.disabled = false;
 
-          // ตรวจสอบว่าระบบหลังบ้านส่งสถานะ error กลับมาหรือไม่
           if (json.status === 'error') {
             throw new Error(json.message);
           }
           
-          // นำข้อมูล array ออกมาจาก json.data (หรือใช้ json ตรงๆ หากไม่ได้ครอบด้วย data)
+          // ดึงข้อมูล array ออกมา
           const data = json.data || json;
           displayResults(data);
 
@@ -239,11 +268,11 @@
         var container = document.getElementById('resultsContainer');
         
         if (!results || results.length === 0) {
-          container.innerHTML = '<div class="no-data">ไม่พบข้อมูลยาที่ตรงกับคำค้นหาของคุณ</div>';
+          container.innerHTML = '<div class="no-data">ไม่พบข้อมูลยาที่ตรงกับคำค้นหาของคุณในระบบ</div>';
           return;
         }
         
-        // กำหนดลำดับคอลัมน์ที่ต้องการให้แสดงผล
+        // กำหนดลำดับคอลัมน์ที่ต้องการให้แสดงผล (ตรงกับข้อมูล JSON ที่ส่งมาจาก Code.gs)
         var desiredHeaders = [
           "Generic name",
           "Therapeutic use",
@@ -258,13 +287,13 @@
           "Reference"
         ];
         
-        var html = '<div class="table-wrapper"><table><tr>';
+        var html = '<div class="table-wrapper"><table><thead><tr>';
         
-        // สร้างหัวตารางตามลำดับที่กำหนด
+        // สร้างหัวตาราง
         for (var i = 0; i < desiredHeaders.length; i++) {
           html += '<th>' + desiredHeaders[i].trim() + '</th>';
         }
-        html += '</tr>';
+        html += '</tr></thead><tbody>';
         
         // สร้างข้อมูลในแต่ละแถว
         for (var i = 0; i < results.length; i++) {
@@ -276,34 +305,34 @@
             
             // ทำให้ลิงก์สามารถคลิกได้
             if (headerKey === 'Reference' && cellValue && String(cellValue).startsWith('http')) {
-               cellValue = '<a href="' + cellValue + '" target="_blank">View Link</a>';
+               cellValue = `<a href="${cellValue}" target="_blank">อ้างอิง</a>`;
             }
             
             // เช็คเงื่อนไขสีสำหรับ TdP risk category
             if (headerKey === 'TdP risk category' && cellValue) {
               var riskLevel = String(cellValue).trim().toLowerCase();
               if (riskLevel === 'conditional') {
-                tdStyle = ' style="background-color: #bbdefb; font-weight: 600;"'; // ฟ้าอ่อน
+                tdStyle = ' style="background-color: #e0f2fe; font-weight: 600; color: #0369a1; text-align: center; border-radius: 6px;"'; // ฟ้า
               } else if (riskLevel === 'possible') {
-                tdStyle = ' style="background-color: #fff59d; font-weight: 600;"'; // เหลือง
+                tdStyle = ' style="background-color: #fef08a; font-weight: 600; color: #854d0e; text-align: center; border-radius: 6px;"'; // เหลือง
               } else if (riskLevel === 'known') {
-                tdStyle = ' style="background-color: #ffcdd2; font-weight: 600; color: #c62828;"'; // แดง
+                tdStyle = ' style="background-color: #fee2e2; font-weight: 600; color: #b91c1c; text-align: center; border-radius: 6px;"'; // แดง
               }
             }
             
             // เช็คค่าว่างให้แสดงเป็นขีด (-)
-            html += '<td' + tdStyle + '>' + (cellValue || '-') + '</td>';
+            html += `<td${tdStyle}>${cellValue || '-'}</td>`;
           }
           html += '</tr>';
         }
-        html += '</table></div>';
+        html += '</tbody></table></div>';
         
         container.innerHTML = html;
       }
       
       function showError(error) {
         document.getElementById('loadingMsg').style.display = 'none';
-        document.getElementById('resultsContainer').innerHTML = '<div class="error">เกิดข้อผิดพลาด: ' + error.message + '</div>';
+        document.getElementById('resultsContainer').innerHTML = `<div class="error">เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}</div>`;
       }
     </script>
   </body>
