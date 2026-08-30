@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Prolongation Drugs Search</title>
+    
+    <!-- นำเข้าฟอนต์ Sarabun จาก Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+      :root {
+        --bg-light: #d7e2ea;
+        --primary-blue: #2f3f52;
+        --dark-blue: #1f2a33;
+        --white: #ffffff;
+      }
+      
+      /* บังคับใช้ฟอนต์ Sarabun กับทุกส่วนของหน้าเว็บ */
+      * {
+        font-family: 'Sarabun', sans-serif;
+        box-sizing: border-box;
+      }
+      
+      body { 
+        padding: 30px 15px; 
+        background-color: var(--bg-light);
+        color: var(--dark-blue);
+        margin: 0;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--white);
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(31, 42, 51, 0.1);
+        border-top: 6px solid var(--primary-blue);
+      }
+      
+      .header-section {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      
+      .logo {
+        max-width: 250px;
+        height: auto;
+        margin-bottom: 20px;
+      }
+      
+      h2 {
+        color: var(--dark-blue);
+        margin: 0 0 10px 0;
+        font-weight: 600;
+      }
+      
+      .subtitle {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 25px;
+      }
+
+      .search-container { 
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 30px;
+      }
+      
+      input[type="text"] { 
+        padding: 12px 16px; 
+        width: 100%;
+        max-width: 400px; 
+        font-size: 16px; 
+        border: 2px solid var(--bg-light);
+        border-radius: 6px;
+        outline: none;
+        transition: border-color 0.3s;
+        color: var(--dark-blue);
+      }
+      
+      input[type="text"]:focus {
+        border-color: var(--primary-blue);
+      }
+      
+      button { 
+        padding: 12px 24px; 
+        font-size: 16px; 
+        font-weight: 600;
+        cursor: pointer; 
+        background-color: var(--primary-blue);
+        color: var(--white);
+        border: none;
+        border-radius: 6px;
+        transition: background-color 0.3s;
+      }
+      
+      button:hover {
+        background-color: var(--dark-blue);
+      }
+      
+      .table-wrapper {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--bg-light);
+      }
+
+      table { 
+        border-collapse: collapse; 
+        width: 100%; 
+        font-size: 15px;
+        background-color: var(--white);
+      }
+      
+      th, td { 
+        border-bottom: 1px solid var(--bg-light); 
+        padding: 14px 12px; 
+        text-align: left; 
+        vertical-align: top;
+      }
+      
+      th { 
+        background-color: var(--primary-blue); 
+        color: var(--white);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      
+      tr:hover {
+        background-color: #f4f7f9;
+      }
+      
+      a {
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      
+      a:hover {
+        text-decoration: underline;
+        color: var(--dark-blue);
+      }
+
+      .loading { 
+        display: none; 
+        color: var(--primary-blue); 
+        font-weight: 600;
+        text-align: center;
+        margin: 20px 0;
+        font-size: 16px;
+      }
+      
+      .error { 
+        color: #d32f2f; 
+        text-align: center;
+        padding: 20px;
+        background-color: #ffebee;
+        border-radius: 6px;
+        font-size: 16px;
+      }
+      
+      .no-data {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        font-style: italic;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-section">
+        <!-- Logo โรงพยาบาล -->
+        <img src="https://static.bangkokhospital.com/uploads/2025/08/pattaya.svg" alt="Hospital Logo" class="logo">
+        <h2>รายการยาที่เสี่ยงต่อการเกิด QT Prolongation</h2>
+        <div class="subtitle">ค้นหาข้อมูลยา ความเสี่ยงและข้อแนะนำการใช้ยา</div>
+      </div>
+      
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="พิมพ์ชื่อยาที่ต้องการค้นหา..." onkeypress="handleKeyPress(event)">
+        <button id="searchBtn" onclick="performSearch()">ค้นหา</button>
+      </div>
+      
+      <div id="loadingMsg" class="loading">กำลังค้นหาข้อมูล...</div>
+      <div id="resultsContainer"></div>
+    </div>
+
+    <script>
+      // นำ Web App URL ของคุณมากำหนดไว้ที่นี่
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0t-BGrrghMaUkJQGr2YujypJ5Q7rCps7ypAwj7CuQ5xq2PoesBz9vBa3FLGqpzcEC/exec';
+
+      function handleKeyPress(event) {
+        if (event.keyCode === 13 || event.key === 'Enter') {
+          performSearch();
+        }
+      }
+
+      async function performSearch() {
+        var searchTerm = document.getElementById('searchInput').value;
+        if (!searchTerm.trim()) {
+          alert('กรุณาพิมพ์ชื่อยาที่ต้องการค้นหา');
+          return;
+        }
+
+        document.getElementById('loadingMsg').style.display = 'block';
+        document.getElementById('resultsContainer').innerHTML = '';
+        const searchBtn = document.getElementById('searchBtn');
+        searchBtn.disabled = true;
+        
+        try {
+          // ดึงข้อมูลผ่าน API โดยส่งคำค้นหาไปกับ URL
+          const response = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(searchTerm)}`);
+          const json = await response.json();
+          
+          searchBtn.disabled = false;
+
+          // ตรวจสอบว่าระบบหลังบ้านส่งสถานะ error กลับมาหรือไม่
+          if (json.status === 'error') {
+            throw new Error(json.message);
+          }
+          
+          // นำข้อมูล array ออกมาจาก json.data (หรือใช้ json ตรงๆ หากไม่ได้ครอบด้วย data)
+          const data = json.data || json;
+          displayResults(data);
+
+        } catch (error) {
+          searchBtn.disabled = false;
+          showError(error);
+        }
+      }
+      
+      function displayResults(results) {
+        document.getElementById('loadingMsg').style.display = 'none';
+        var container = document.getElementById('resultsContainer');
+        
+        if (!results || results.length === 0) {
+          container.innerHTML = '<div class="no-data">ไม่พบข้อมูลยาที่ตรงกับคำค้นหาของคุณ</div>';
+          return;
+        }
+        
+        // กำหนดลำดับคอลัมน์ที่ต้องการให้แสดงผล
+        var desiredHeaders = [
+          "Generic name",
+          "Therapeutic use",
+          "onset of drug",
+          "Half life",
+          "TdP risk category",
+          "Onset time of QT",
+          "ECG recommendations ", 
+          "CI Concomitant medications ", 
+          "BPH",
+          "TH",
+          "Reference"
+        ];
+        
+        var html = '<div class="table-wrapper"><table><tr>';
+        
+        // สร้างหัวตารางตามลำดับที่กำหนด
+        for (var i = 0; i < desiredHeaders.length; i++) {
+          html += '<th>' + desiredHeaders[i].trim() + '</th>';
+        }
+        html += '</tr>';
+        
+        // สร้างข้อมูลในแต่ละแถว
+        for (var i = 0; i < results.length; i++) {
+          html += '<tr>';
+          for (var j = 0; j < desiredHeaders.length; j++) {
+            var headerKey = desiredHeaders[j];
+            var cellValue = results[i][headerKey];
+            var tdStyle = ''; 
+            
+            // ทำให้ลิงก์สามารถคลิกได้
+            if (headerKey === 'Reference' && cellValue && String(cellValue).startsWith('http')) {
+               cellValue = '<a href="' + cellValue + '" target="_blank">View Link</a>';
+            }
+            
+            // เช็คเงื่อนไขสีสำหรับ TdP risk category
+            if (headerKey === 'TdP risk category' && cellValue) {
+              var riskLevel = String(cellValue).trim().toLowerCase();
+              if (riskLevel === 'conditional') {
+                tdStyle = ' style="background-color: #bbdefb; font-weight: 600;"'; // ฟ้าอ่อน
+              } else if (riskLevel === 'possible') {
+                tdStyle = ' style="background-color: #fff59d; font-weight: 600;"'; // เหลือง
+              } else if (riskLevel === 'known') {
+                tdStyle = ' style="background-color: #ffcdd2; font-weight: 600; color: #c62828;"'; // แดง
+              }
+            }
+            
+            // เช็คค่าว่างให้แสดงเป็นขีด (-)
+            html += '<td' + tdStyle + '>' + (cellValue || '-') + '</td>';
+          }
+          html += '</tr>';
+        }
+        html += '</table></div>';
+        
+        container.innerHTML = html;
+      }
+      
+      function showError(error) {
+        document.getElementById('loadingMsg').style.display = 'none';
+        document.getElementById('resultsContainer').innerHTML = '<div class="error">เกิดข้อผิดพลาด: ' + error.message + '</div>';
+      }
+    </script>
+  </body>
+</html>
